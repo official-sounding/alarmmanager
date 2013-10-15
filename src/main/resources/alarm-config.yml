@@ -1,0 +1,25 @@
+# Other settings
+# would go here
+jobFolder: C:\\unix\\
+
+
+# Quartz Scheduler configuration
+quartzSettings:
+  instanceName: MyQuartzScheduler
+  threadPoolClass: org.quartz.simpl.SimpleThreadPool
+  threadCount: 5
+  threadPriority: 5
+  jobStoreClass: org.quartz.simpl.RAMJobStore
+  # A comma separated list of XML files
+  
+http:
+  rootPath: "/api/*"
+  
+logging:
+  level: DEBUG
+  file:
+    enabled: true
+    threshold: ALL
+    currentLogFilename: ./ws.log
+    archivedLogFilenamePattern: ./ws-%d.log.gz
+    archivedFileCount: 5

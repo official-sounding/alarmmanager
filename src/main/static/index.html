@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/bootstrap-timepicker.min.css" rel="stylesheet" />
+	<link href="https://netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet" />
+    </head>
+    <body>
+  <div class="container">
+   <div class="row">
+    <div class="col-lg-6">
+    <form class="form-horizontal" role="form" method="post" action="api/alarms">
+    <fieldset>
+	<legend>Add an Alarm</legend>
+     <div class="form-group">
+        <label for="day" class="col-lg-4 control-label">Day of Week</label>
+        <div class="col-lg-8">
+		<select class="form-control input-sm" id="day" name="day">
+		<option value="ALL">All</option>
+		<option value="MON">Monday</option>
+		<option value="TUE">Tuesday</option>
+		<option value="WED">Wednesday</option>
+		<option value="THU">Thursday</option>
+		<option value="FRI">Friday</option>
+		<option value="SAT">Saturday</option>
+		<option value="SUN">Sunday</option>
+		</select>
+		</div>
+     </div>
+     <div class="form-group bootstrap-timepicker">
+    	<label for="time" class="col-lg-4 control-label">Time</label>
+		<div class="input-group col-lg-8">
+    	<input name="time" id="time" type="text" class="form-control input-sm">
+    	<span class="input-group-addon input-sm"><i class="icon-time"></i></span>
+		</div>
+     </div>
+     <div class="form-group">
+        <div class="col-lg-10 col-lg-offset-2">
+          <button class="btn btn-default btn-sm">Cancel</button> 
+          <button type="submit" class="btn btn-primary btn-sm">Submit</button> 
+        </div>
+     </div>
+     </fieldset>
+     </form>
+     </div>
+   </div>
+   
+   <div class="row" id="alarms">
+	
+		
+   </div>
+  </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+    <script src="js/bootstrap-timepicker.min.js"></script>
+    <script type="text/javascript">
+    $('#time').timepicker({
+minuteStep: 5,
+showMeridian: false,
+defaultTime: false
+});
+
+	$(document).ready(function() {
+		$.get("/api/alarms", function(data) {
+			$.each( data.jobs, function(day,alarms) {
+				var thumbnail = $(document.createElement('div')).addClass("thumbnail").addClass("col-sm-6").addClass("col-md-3");
+				var thumbnailContent = $(document.createElement('div')).addClass("caption");
+				thumbnailContent.append($(document.createElement('h3')).html(day));
+				var alarmList = $(document.createElement('ul')).addClass("list-unstyled");
+				$.each( alarms, function(idx,value) {
+					alarmList.append($(document.createElement('li')).html(value));
+				});
+				
+				thumbnailContent.append(alarmList);
+				thumbnail.append(thumbnailContent);
+				$("#alarms").append(thumbnail);
+			});
+		
+		});
+	
+	});
+    </script>
+    </body>
+</html>
+
