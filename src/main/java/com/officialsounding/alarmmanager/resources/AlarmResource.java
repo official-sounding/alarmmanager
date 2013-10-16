@@ -16,7 +16,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import org.joda.time.LocalTime;
-import org.quartz.Trigger;
 
 import com.officialsounding.alarmmanager.model.AlarmDetails;
 import com.officialsounding.alarmmanager.model.AlarmException;

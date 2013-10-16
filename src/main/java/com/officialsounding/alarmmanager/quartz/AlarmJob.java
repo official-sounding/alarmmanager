@@ -16,7 +16,7 @@ public class AlarmJob implements Job {
 	public void execute(JobExecutionContext ctx) throws JobExecutionException {
 		
 		String jobFolder = (String) ctx.getMergedJobDataMap().get("jobFolder");
-		ProcessBuilder pb = new ProcessBuilder(jobFolder + File.separator + "pi_alarm.py");
+		ProcessBuilder pb = new ProcessBuilder(jobFolder + File.separator + "alarm.py");
 		
 		pb.directory(new File(jobFolder));
 		

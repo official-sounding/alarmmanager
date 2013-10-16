@@ -41,7 +41,9 @@ public class AlarmService extends Service<AlarmConfiguration> {
 		env.getObjectMapperFactory().disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 		
 		env.getObjectMapperFactory().registerModule(new SimpleModule() {
-		    {
+			private static final long serialVersionUID = 3019866683654743744L;
+
+			{
 		        addSerializer(LocalTime.class, new StdSerializer<LocalTime>(LocalTime.class) {
 
 					@Override

@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.officialsounding.alarmmanager.model.AlarmException;
 import com.officialsounding.alarmmanager.model.Day;
 import com.officialsounding.alarmmanager.model.JobList;
@@ -61,6 +62,7 @@ public class ManagedQuartz implements Managed {
 		scheduler.getListenerManager().addJobListener(jobMonitor, EverythingMatcher.allJobs());	
 
 		ObjectMapper mapper = new ObjectMapper();
+		mapper.registerModule(new JodaModule());
 
 
 		if(!jobfile.exists()) {
@@ -69,6 +71,11 @@ public class ManagedQuartz implements Managed {
 		} else {
 			log.info("loading jobs from job file");
 			jobs = mapper.readValue(jobfile,JobList.class);
+			for(Day day: Day.values()) {
+				for(LocalTime time: jobs.getJobs().get(day)) {
+					addAlarm(day,time);
+				}
+			}
 		}
 
 	}
@@ -79,6 +86,7 @@ public class ManagedQuartz implements Managed {
 		scheduler.shutdown(true);
 
 		ObjectMapper mapper = new ObjectMapper();
+		mapper.registerModule(new JodaModule());
 
 		if(!jobfile.exists()) {
 			log.info("creating job file at {}",jobfile);
@@ -86,6 +94,7 @@ public class ManagedQuartz implements Managed {
 		}
 		log.info("persisting job list to filesystem");
 		mapper.writeValue(jobfile, jobs);
+		
 	}
 
 	public boolean isHealthy(){
