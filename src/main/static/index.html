@@ -10,7 +10,7 @@
   <div class="container">
    <div class="row">
     <div class="col-lg-6">
-    <form class="form-horizontal" role="form" method="post" action="api/alarms">
+    <form class="form-horizontal" role="form" method="post" action="api/alarms" id="addAlarm">
     <fieldset>
 	<legend>Add an Alarm</legend>
      <div class="form-group">
@@ -45,9 +45,11 @@
      </form>
      </div>
    </div>
-   
+   <div class="row" id="options">
+	<p>Enabled: <span id="opt-enabled"></span></p>
+	<p>Snooze Falloff: <span id="opt-falloff"></span></p>
+   </div>
    <div class="row" id="alarms">
-	
 		
    </div>
   </div>
@@ -61,25 +63,82 @@ showMeridian: false,
 defaultTime: false
 });
 
-	$(document).ready(function() {
+	$(function() {
+		getAlarmData();
+		$("#addAlarm").submit(function(event) {
+			var form = $(this);
+			
+			$.ajax({
+				type: form.attr('method'),
+				url: form.attr('action'),
+				data: form.serialize(),
+				success: function(data) {
+					addAlarm(data.day,data.time,$("#"+data.day));
+				},
+				error: function(jqXHR, textStatus, errorMessage) {
+					console.log(errorMessage);
+				}
+			});
+			event.preventDefault();
+		});
+	});
+	
+	function getAlarmData() {
+		$("#alarms").html("");
 		$.get("/api/alarms", function(data) {
+			$("#opt-falloff").html(data.falloff);
+			$("#opt-enabled").html(data.enabled);
 			$.each( data.jobs, function(day,alarms) {
 				var thumbnail = $(document.createElement('div')).addClass("thumbnail").addClass("col-sm-6").addClass("col-md-3");
 				var thumbnailContent = $(document.createElement('div')).addClass("caption");
 				thumbnailContent.append($(document.createElement('h3')).html(day));
-				var alarmList = $(document.createElement('ul')).addClass("list-unstyled");
-				$.each( alarms, function(idx,value) {
-					alarmList.append($(document.createElement('li')).html(value));
+				var alarmList = $(document.createElement('ul')).addClass("list-unstyled").attr("id",day);
+				$.each( alarms, function(idx,time) {
+					addAlarm(day,time,alarmList);
 				});
 				
 				thumbnailContent.append(alarmList);
 				thumbnail.append(thumbnailContent);
 				$("#alarms").append(thumbnail);
 			});
-		
 		});
+	}
 	
-	});
+	function addAlarm(day,time,list) {
+		var line = $(document.createElement('li')).html(time);
+		line.append(createDeleteButton(day,time));
+		list.append(line);	
+	}
+	function createDeleteButton(day,time) {
+		var button = $(document.createElement('button')).addClass("close").addClass("clearfix").html("&times;");
+		
+		button.data("day",day);
+		button.data("time",time);
+		
+		button.click(deleteClicked);
+		
+		return button;
+	}
+	
+	
+	function deleteClicked() {
+		var day = $(this).data("day");
+		var time = $(this).data("time");
+		
+		var element = $(this);
+		
+		$.ajax("/api/alarms/"+day+"/"+time,{
+		type: "DELETE",
+		statusCode: {
+			200: function(data,textStatus,jqXHR) {
+					element.parent().slideUp();
+				} 
+		}
+		});
+	}
+	
+	
+	
     </script>
     </body>
 </html>

@@ -1,21 +1,23 @@
 package com.officialsounding.alarmmanager.resources;
 
+
 import java.util.List;
 import java.util.Map;
 
-import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 
 import org.joda.time.LocalTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.officialsounding.alarmmanager.model.AlarmDetails;
 import com.officialsounding.alarmmanager.model.AlarmException;
@@ -30,6 +32,8 @@ public class AlarmResource {
 
 	ManagedQuartz mq;
 	
+	Logger log = LoggerFactory.getLogger(AlarmResource.class);
+	
 	public AlarmResource(ManagedQuartz mq) {
 		this.mq = mq;
 	}
@@ -42,14 +46,16 @@ public class AlarmResource {
 	
 	@DELETE
 	@Timed
-	public Response deleteJob(@Valid AlarmDetails job) {
+	@Path("{day}/{time}")
+	public Response deleteJob(@PathParam("day") String day, @PathParam("time") String time) {
 		try {
-			mq.deleteAlarm(job.getDay(),  getTimeFromString(job.getTime()));
+			mq.deleteAlarm(Day.valueOf(day),  getTimeFromString(time));
+			//should probably return a 205 response code here, but the Response object doesn't have that
 			return Response.ok().build();
 		}catch(AlarmException e) {
-			return Response.notModified().build();
-		}
-		
+			return Response.noContent().build();
+		} 	
+			
 	}
 	
 	@POST
@@ -57,9 +63,8 @@ public class AlarmResource {
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public Response addJob(@FormParam("day") String day, @FormParam("time") String time) {
 		try {
-			
-			mq.addAlarm(Day.valueOf(day), getTimeFromString(time));
-			return Response.created(UriBuilder.fromPath("/").build()).build();
+			AlarmDetails details = mq.addAlarm(Day.valueOf(day), getTimeFromString(time));
+			return Response.ok(details).build();
 		}catch(AlarmException | NumberFormatException e) {
 			return Response.notModified().build();
 		}

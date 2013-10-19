@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
+import com.officialsounding.alarmmanager.model.AlarmDetails;
 import com.officialsounding.alarmmanager.model.AlarmException;
 import com.officialsounding.alarmmanager.model.Day;
 import com.officialsounding.alarmmanager.model.JobList;
@@ -107,7 +108,7 @@ public class ManagedQuartz implements Managed {
 	}
 
 
-	public void addAlarm(Day day, LocalTime time) throws AlarmException {
+	public AlarmDetails addAlarm(Day day, LocalTime time) throws AlarmException {
 		JobDetail job = buildJob(day, time);
 		log.info("adding alarm for {} @ {}",day.getPretty(),time);
 
@@ -131,6 +132,7 @@ public class ManagedQuartz implements Managed {
 				scheduler.scheduleJob(job,trigger);
 				jobs.addJob(day, time);
 				log.info("alarm added");
+				return new AlarmDetails(day,time);
 			} else {
 				throw new AlarmException("job already exists");
 			}
@@ -141,18 +143,21 @@ public class ManagedQuartz implements Managed {
 	}
 
 	public void deleteAlarm(Day day, LocalTime time) throws AlarmException{
-		JobDetail job = buildJob(day,time);
+		JobKey key = new JobKey(time.toString(),day.toString());
 		log.debug("deleteing job for {} @ {}",day.getPretty(),time);
 
 		try {
-			if(!scheduler.checkExists(job.getKey())) {
-				if(scheduler.deleteJob(job.getKey())) {
+			if(scheduler.checkExists(key)) {
+				if(scheduler.deleteJob(key)) {
 					jobs.deleteJob(day, time);
 					log.debug("job deleted successfully");
 					return;
+				} else {
+					throw new AlarmException("job with key "+key+" was not deleted successfully");
 				}
+			} else {
+				throw new AlarmException("job with key "+key+" did not exist");
 			}
-			throw new AlarmException("job not deleted");
 		} catch(SchedulerException e) {
 			log.error("exception on job delete",e);
 			throw new AlarmException("exception on job delete",e);
