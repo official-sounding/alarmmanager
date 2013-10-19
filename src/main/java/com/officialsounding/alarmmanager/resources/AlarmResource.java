@@ -19,6 +19,7 @@ import org.joda.time.LocalTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.officialsounding.alarmmanager.data.ManagedJobList;
 import com.officialsounding.alarmmanager.model.AlarmDetails;
 import com.officialsounding.alarmmanager.model.AlarmException;
 import com.officialsounding.alarmmanager.model.Day;
@@ -31,17 +32,19 @@ import com.yammer.metrics.annotation.Timed;
 public class AlarmResource {
 
 	ManagedQuartz mq;
+	ManagedJobList mjl;
 	
 	Logger log = LoggerFactory.getLogger(AlarmResource.class);
 	
-	public AlarmResource(ManagedQuartz mq) {
+	public AlarmResource(ManagedQuartz mq,ManagedJobList mjl) {
 		this.mq = mq;
+		this.mjl = mjl;
 	}
 	
 	@GET
 	@Timed
 	public JobList getJobs() {
-		return mq.getJobs();
+		return mjl.getJobs();
 	}
 	
 	@DELETE
@@ -68,6 +71,24 @@ public class AlarmResource {
 		}catch(AlarmException | NumberFormatException e) {
 			return Response.notModified().build();
 		}
+	}
+	
+	@POST
+	@Timed
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Path("/enabled")
+	public Response setEnabled(@FormParam("value") boolean enabled) {
+		mjl.setEnabled(enabled);
+		return Response.ok().build();
+	}
+	
+	@POST
+	@Timed
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Path("/falloff")
+	public Response setFalloff(@FormParam("value") boolean falloff) {
+		mjl.setEnabled(falloff);
+		return Response.ok().build();
 	}
 	
 	@GET

@@ -1,6 +1,5 @@
 package com.officialsounding.alarmmanager.quartz;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,12 +19,10 @@ import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.joda.JodaModule;
+import com.officialsounding.alarmmanager.data.ManagedJobList;
 import com.officialsounding.alarmmanager.model.AlarmDetails;
 import com.officialsounding.alarmmanager.model.AlarmException;
 import com.officialsounding.alarmmanager.model.Day;
-import com.officialsounding.alarmmanager.model.JobList;
 import com.yammer.dropwizard.lifecycle.Managed;
 
 
@@ -37,23 +34,21 @@ public class ManagedQuartz implements Managed {
 	private QuartzSchedulerMonitor schedulerMonitor;
 	private QuartzJobMonitor jobMonitor;
 
-	private JobList jobs;
+	
 	private String jobFolder;
-	private File jobfile;
+	private ManagedJobList mjl;
 
 
 	private static final Logger log = LoggerFactory.getLogger(ManagedQuartz.class);
 
-	public ManagedQuartz(SchedulerFactory sf,String jobFolder) throws SchedulerException {
+	public ManagedQuartz(SchedulerFactory sf,String jobFolder, ManagedJobList mjl) throws SchedulerException {
 		scheduler = sf.getScheduler();
 		schedulerMonitor = new QuartzSchedulerMonitor(); // Implements SchedulerListener
 		scheduler.getListenerManager().addSchedulerListener(schedulerMonitor);
 		jobMonitor = new QuartzJobMonitor(); // Implements JobListener
 		scheduler.getListenerManager().addJobListener(jobMonitor);
-
 		this.jobFolder = jobFolder;
-		jobfile = new File(jobFolder,"jobs.json");
-
+		this.mjl = mjl;
 	}
 
 	@Override
@@ -62,40 +57,13 @@ public class ManagedQuartz implements Managed {
 		// Make our Job listener cover all scheduled jobs
 		scheduler.getListenerManager().addJobListener(jobMonitor, EverythingMatcher.allJobs());	
 
-		ObjectMapper mapper = new ObjectMapper();
-		mapper.registerModule(new JodaModule());
-
-
-		if(!jobfile.exists()) {
-			log.info("job file doesn't exist yet");
-			jobs = new JobList();
-		} else {
-			log.info("loading jobs from job file");
-			jobs = mapper.readValue(jobfile,JobList.class);
-			for(Day day: Day.values()) {
-				for(LocalTime time: jobs.getJobs().get(day)) {
-					addAlarm(day,time);
-				}
-			}
-		}
-
+		
 	}
 
 	@Override
 	public void stop() throws Exception {
 		scheduler.getListenerManager().removeJobListener(jobMonitor.getName());
 		scheduler.shutdown(true);
-
-		ObjectMapper mapper = new ObjectMapper();
-		mapper.registerModule(new JodaModule());
-
-		if(!jobfile.exists()) {
-			log.info("creating job file at {}",jobfile);
-			jobfile.createNewFile();
-		}
-		log.info("persisting job list to filesystem");
-		mapper.writeValue(jobfile, jobs);
-		
 	}
 
 	public boolean isHealthy(){
@@ -111,7 +79,7 @@ public class ManagedQuartz implements Managed {
 	public AlarmDetails addAlarm(Day day, LocalTime time) throws AlarmException {
 		JobDetail job = buildJob(day, time);
 		log.info("adding alarm for {} @ {}",day.getPretty(),time);
-
+		job.getJobDataMap().put("jobList",mjl.getJobs());
 		Trigger trigger;
 		CronScheduleBuilder cron;
 
@@ -130,7 +98,6 @@ public class ManagedQuartz implements Managed {
 		try {
 			if(!scheduler.checkExists(job.getKey())) {
 				scheduler.scheduleJob(job,trigger);
-				jobs.addJob(day, time);
 				log.info("alarm added");
 				return new AlarmDetails(day,time);
 			} else {
@@ -142,16 +109,15 @@ public class ManagedQuartz implements Managed {
 		}
 	}
 
-	public void deleteAlarm(Day day, LocalTime time) throws AlarmException{
+	public AlarmDetails deleteAlarm(Day day, LocalTime time) throws AlarmException{
 		JobKey key = new JobKey(time.toString(),day.toString());
 		log.debug("deleteing job for {} @ {}",day.getPretty(),time);
 
 		try {
 			if(scheduler.checkExists(key)) {
 				if(scheduler.deleteJob(key)) {
-					jobs.deleteJob(day, time);
 					log.debug("job deleted successfully");
-					return;
+					return new AlarmDetails(day,time);
 				} else {
 					throw new AlarmException("job with key "+key+" was not deleted successfully");
 				}
@@ -172,10 +138,6 @@ public class ManagedQuartz implements Managed {
 		return job;
 	}
 
-	public JobList getJobs() {
-		return jobs;
-	}
-
 	public Map<String,List<String>> getJobsFromScheduler()  {
 		Map<String,List<String>> jobs = new HashMap<>();
 		try {
@@ -189,8 +151,7 @@ public class ManagedQuartz implements Managed {
 				}
 			
 		} catch (SchedulerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error("error getting quartz jobs",e);
 		}
 
 		return jobs;
