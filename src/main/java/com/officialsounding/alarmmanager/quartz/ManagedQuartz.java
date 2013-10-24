@@ -105,7 +105,9 @@ public class ManagedQuartz implements Managed {
 			if(!scheduler.checkExists(job.getKey())) {
 				scheduler.scheduleJob(job,trigger);
 				log.info("alarm added");
-				return new AlarmDetails(day,time);
+				AlarmDetails details = new AlarmDetails(day,time);
+				mjl.addJob(details);
+				return details;
 			} else {
 				throw new AlarmException("job already exists");
 			}
@@ -115,7 +117,7 @@ public class ManagedQuartz implements Managed {
 		}
 	}
 
-	public AlarmDetails deleteAlarm(Day day, LocalTime time) throws AlarmException{
+	public void deleteAlarm(Day day, LocalTime time) throws AlarmException{
 		JobKey key = new JobKey(time.toString(),day.toString());
 		log.debug("deleteing job for {} @ {}",day.getPretty(),time);
 
@@ -123,7 +125,7 @@ public class ManagedQuartz implements Managed {
 			if(scheduler.checkExists(key)) {
 				if(scheduler.deleteJob(key)) {
 					log.debug("job deleted successfully");
-					return new AlarmDetails(day,time);
+					mjl.deleteJob(new AlarmDetails(day,time));
 				} else {
 					throw new AlarmException("job with key "+key+" was not deleted successfully");
 				}
