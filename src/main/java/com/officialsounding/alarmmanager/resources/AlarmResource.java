@@ -91,6 +91,15 @@ public class AlarmResource {
 		return Response.ok().build();
 	}
 	
+	@POST
+	@Timed
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Path("/skipnext")
+	public Response setSkipNext(@FormParam("value") boolean skipNext) {
+		mjl.setSkipnext(skipNext);
+		return Response.ok().build();
+	}
+	
 	@GET
 	@Path("/quartz")
 	public Map<String, List<String>> getQuartzJobs() {

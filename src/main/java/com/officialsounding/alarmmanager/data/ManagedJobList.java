@@ -40,6 +40,8 @@ public class ManagedJobList implements Managed {
 
 	@Override
 	public void stop() throws Exception {
+		//never persist the skipnext operation
+		jobs.setSkipnext(false);
 		if(!jobfile.exists()) {
 			log.info("creating job file at {}",jobfile);
 			jobfile.createNewFile();
@@ -68,12 +70,9 @@ public class ManagedJobList implements Managed {
 	public void setFalloff(boolean falloff) {
 		jobs.setFalloff(falloff);
 	}
+	
+	public void setSkipnext(boolean skipnext) {
+		jobs.setSkipnext(skipnext);
+	}
 
 }
-
-
-//for(Day day: Day.values()) {
-//	for(LocalTime time: jobs.getJobs().get(day)) {
-//		addAlarm(day,time);
-//	}
-//}

@@ -13,6 +13,8 @@ public class JobList {
 	private boolean enabled;
 	private boolean falloff;
 	
+	private boolean skipnext;
+	
 	
 	public JobList() {
 		jobs = new HashMap<>();
@@ -21,6 +23,7 @@ public class JobList {
 		}
 		enabled = true;
 		falloff = true;
+		skipnext = false;
 	}
 	
 	public Map<Day, Set<LocalTime>> getJobs() {
@@ -40,6 +43,17 @@ public class JobList {
 	}
 	public void setFalloff(boolean falloff) {
 		this.falloff = falloff;
+	}
+	public boolean isSkipnext() {
+		return skipnext;
+	}
+
+	public void setSkipnext(boolean skipnext) {
+		this.skipnext = skipnext;
+	}
+	
+	public Day[] getDays() {
+		return Day.values();
 	}
 	
 	

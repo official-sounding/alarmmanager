@@ -1,167 +1,198 @@
 <!DOCTYPE html>
 <html>
-	<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<link href="css/bootstrap.min.css" rel="stylesheet" />
-	<link href="css/bootstrap-timepicker.min.css" rel="stylesheet" />
-	<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet" />
-	<link href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/1.8/css/bootstrap-switch.css" rel="stylesheet" />
-	</head>
-	<body>
-  <div class="container">
-   <div class="row">
-	<div class="col-lg-6">
-	<form class="form-horizontal" role="form" method="post" action="api/alarms" id="addAlarm">
-	<fieldset>
-	<legend>Add an Alarm</legend>
-	 <div class="form-group">
-		<label for="day" class="col-lg-4 control-label">Day of Week</label>
-		<div class="col-lg-8">
-		<select class="form-control input-sm" id="day" name="day">
-		<option value="ALL">All</option>
-		<option value="MON">Monday</option>
-		<option value="TUE">Tuesday</option>
-		<option value="WED">Wednesday</option>
-		<option value="THU">Thursday</option>
-		<option value="FRI">Friday</option>
-		<option value="SAT">Saturday</option>
-		<option value="SUN">Sunday</option>
-		</select>
-		</div>
-	 </div>
-	 <div class="form-group bootstrap-timepicker">
-		<label for="time" class="col-lg-4 control-label">Time</label>
-		<div class="input-group col-lg-8">
-		<input name="time" id="time" type="text" class="form-control input-sm">
-		<span class="input-group-addon input-sm"><i class="icon-time"></i></span>
-		</div>
-	 </div>
-	 <div class="form-group">
-		<div class="col-lg-10 col-lg-offset-2">
-		  <button class="btn btn-default btn-sm">Cancel</button> 
-		  <button type="submit" class="btn btn-primary btn-sm">Submit</button> 
-		</div>
-	 </div>
-	 </fieldset>
-	 </form>
-	 </div>
-   </div>
-   <div class="row" id="options">
-		<div>
-		<label class="opt-enabled">Alarms Enabled
-			<div id="opt-enabled" class="opt-toggle make-switch switch-small" data-type="enabled">
-				<input type="checkbox" checked />
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="css/bootstrap.min.css" rel="stylesheet" />
+<link href="css/bootstrap-timepicker.min.css" rel="stylesheet" />
+<link
+	href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css"
+	rel="stylesheet" />
+<link
+	href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/1.8/css/bootstrap-switch.css"
+	rel="stylesheet" />
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-6">
+				<form class="form-horizontal" role="form" method="post"
+					action="api/alarms" id="addAlarm">
+					<fieldset>
+						<legend>Add an Alarm</legend>
+						<div class="form-group">
+							<label for="day" class="col-lg-4 control-label">Day of
+								Week</label>
+							<div class="col-lg-8">
+								<select class="form-control input-sm" id="day" name="day">
+									<option value="ALL">All</option>
+									<option value="MON">Monday</option>
+									<option value="TUE">Tuesday</option>
+									<option value="WED">Wednesday</option>
+									<option value="THU">Thursday</option>
+									<option value="FRI">Friday</option>
+									<option value="SAT">Saturday</option>
+									<option value="SUN">Sunday</option>
+								</select>
+							</div>
+						</div>
+						<div class="form-group bootstrap-timepicker">
+							<label for="time" class="col-lg-4 control-label">Time</label>
+							<div class="input-group col-lg-8">
+								<input name="time" id="time" type="text"
+									class="form-control input-sm"> <span
+									class="input-group-addon input-sm"><i class="icon-time"></i></span>
+							</div>
+						</div>
+						<div class="form-group">
+							<div class="col-lg-10 col-lg-offset-2">
+								<button class="btn btn-default btn-sm">Cancel</button>
+								<button type="submit" class="btn btn-primary btn-sm">Submit</button>
+							</div>
+						</div>
+					</fieldset>
+				</form>
 			</div>
-		</label>
 		</div>
-		<div>
-		<label class="opt-falloff">Snooze Falloff
-			<div id="opt-falloff" class="opt-toggle make-switch switch-small" data-type="falloff">
-				<input type="checkbox" checked />
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h3 class="panel-title">Options</h3>
 			</div>
-		</label>
-		</div>
-	</div>
-	<div class="row" id="alarms">
-	</div>
-	</div>
-	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-	<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
-	<script src="js/bootstrap-timepicker.min.js"></script>
-	<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/1.8/js/bootstrap-switch.min.js"></script>
-	<script type="text/javascript">
-	$('#time').timepicker({
-minuteStep: 5,
-showMeridian: false,
-defaultTime: false
-});
+			<div class="panel-body" id="options">
+				<div>
+					<label class="opt-enabled">Alarms Enabled</label>
+					<div id="opt-enabled" class="opt-toggle make-switch switch-small"
+						data-type="enabled">
+						<input type="checkbox" checked />
+					</div>
+				</div>
+				<div>
+					<label class="opt-falloff">Snooze Falloff</label>
+					<div id="opt-falloff" class="opt-toggle make-switch switch-small"
+						data-type="falloff">
+						<input type="checkbox" checked />
+					</div>
 
-	$(function() {
-		getAlarmData();
-		$("#addAlarm").submit(function(event) {
-			var form = $(this);
-			
-			$.ajax({
-				type: form.attr('method'),
-				url: form.attr('action'),
-				data: form.serialize(),
-				success: function(data) {
-					addAlarm(data.day,data.time,$("#"+data.day));
-				},
-				error: function(jqXHR, textStatus, errorMessage) {
-					console.log(errorMessage);
+				</div>
+				<div>
+					<label class="opt-skipnext">Skip Next</label>
+					<div id="opt-skipnext" class="opt-toggle make-switch switch-small"
+						data-type="skipnext">
+						<input type="checkbox" checked />
+					</div>
+				</div>
+			</div>
+		</div>
+		<hr>
+		<div class="row" id="alarms"></div>
+	</div>
+	<script
+		src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script
+		src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+	<script src="js/bootstrap-timepicker.min.js"></script>
+	<script
+		src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/1.8/js/bootstrap-switch.min.js"></script>
+	<script type="text/javascript">
+		$('#time').timepicker({
+			minuteStep : 5,
+			showMeridian : false,
+			defaultTime : false
+		});
+
+		$(function() {
+			getAlarmData();
+			$("#addAlarm").submit(function(event) {
+				var form = $(this);
+
+				$.ajax({
+					type : form.attr('method'),
+					url : form.attr('action'),
+					data : form.serialize(),
+					success : function(data) {
+						addAlarm(data.day, data.time, $("#" + data.day));
+					},
+					error : function(jqXHR, textStatus, errorMessage) {
+						console.log(errorMessage);
+					}
+				});
+				event.preventDefault();
+			});
+
+			$(".opt-toggle").on('switch-change', function(e, data) {
+				var endpoint = $(this).data('type');
+				var postdata = {
+					value : data.value
+				};
+
+				$.post("/api/alarms/" + endpoint, postdata, function(data) {
+					console.log(data);
+				});
+			});
+		});
+
+		function getAlarmData() {
+			$("#alarms").html("");
+			$.get("/api/alarms", function(data) {
+				$("#opt-enabled").bootstrapSwitch('setState', data.enabled);
+				$("#opt-falloff").bootstrapSwitch('setState', data.falloff);
+				$("#opt-skipnext").bootstrapSwitch('setState', data.skipnext);
+
+				$.each(data.days, function(idx, day) {
+					var alarms = data.jobs[day];
+					var thumbnail = $(document.createElement('div')).addClass(
+							"thumbnail").addClass("col-sm-6").addClass(
+							"col-md-3");
+					var thumbnailContent = $(document.createElement('div'))
+							.addClass("caption");
+					thumbnailContent.append($(document.createElement('h3'))
+							.html(day));
+					var alarmList = $(document.createElement('ul')).addClass(
+							"list-unstyled").attr("id", day);
+					$.each(alarms, function(idx, time) {
+						addAlarm(day, time, alarmList);
+					});
+
+					thumbnailContent.append(alarmList);
+					thumbnail.append(thumbnailContent);
+					$("#alarms").append(thumbnail);
+				});
+			});
+		}
+
+		function addAlarm(day, time, list) {
+			var line = $(document.createElement('li')).html(time);
+			line.append(createDeleteButton(day, time));
+			list.append(line);
+		}
+
+		function createDeleteButton(day, time) {
+			var button = $(document.createElement('button')).addClass("close")
+					.addClass("clearfix").html("&times;");
+
+			button.data("day", day);
+			button.data("time", time);
+
+			button.click(deleteClicked);
+
+			return button;
+		}
+
+		function deleteClicked() {
+			var day = $(this).data("day");
+			var time = $(this).data("time");
+
+			var element = $(this);
+
+			$.ajax("/api/alarms/" + day + "/" + time, {
+				type : "DELETE",
+				statusCode : {
+					200 : function(data, textStatus, jqXHR) {
+						element.parent().slideUp();
+					}
 				}
 			});
-			event.preventDefault();
-		});
-
-		$(".opt-toggle").on('switch-change', function (e,data) {
-			var endpoint = $(this).data('type');
-			var postdata = {value: data.value};
-
-			$.post("/api/alarms/"+endpoint, postdata, function(data) {
-				console.log(data);
-			});
-		});
-	});
-	
-	function getAlarmData() {
-		$("#alarms").html("");
-		$.get("/api/alarms", function(data) {
-			$("#opt-enabled").bootstrapSwitch('setState',data.enabled);
-			$("#opt-falloff").bootstrapSwitch('setState',data.falloff);
-			$.each( data.jobs, function(day,alarms) {
-				var thumbnail = $(document.createElement('div')).addClass("thumbnail").addClass("col-sm-6").addClass("col-md-3");
-				var thumbnailContent = $(document.createElement('div')).addClass("caption");
-				thumbnailContent.append($(document.createElement('h3')).html(day));
-				var alarmList = $(document.createElement('ul')).addClass("list-unstyled").attr("id",day);
-				$.each( alarms, function(idx,time) {
-					addAlarm(day,time,alarmList);
-				});
-				
-				thumbnailContent.append(alarmList);
-				thumbnail.append(thumbnailContent);
-				$("#alarms").append(thumbnail);
-			});
-		});
-	}
-	
-	function addAlarm(day,time,list) {
-		var line = $(document.createElement('li')).html(time);
-		line.append(createDeleteButton(day,time));
-		list.append(line);	
-	}
-	function createDeleteButton(day,time) {
-		var button = $(document.createElement('button')).addClass("close").addClass("clearfix").html("&times;");
-		
-		button.data("day",day);
-		button.data("time",time);
-		
-		button.click(deleteClicked);
-		
-		return button;
-	}
-	
-	
-	function deleteClicked() {
-		var day = $(this).data("day");
-		var time = $(this).data("time");
-		
-		var element = $(this);
-		
-		$.ajax("/api/alarms/"+day+"/"+time,{
-		type: "DELETE",
-		statusCode: {
-			200: function(data,textStatus,jqXHR) {
-					element.parent().slideUp();
-				} 
 		}
-		});
-	}
-	
-	
-	
 	</script>
-	</body>
+</body>
 </html>
 

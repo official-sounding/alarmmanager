@@ -36,6 +36,7 @@ public class ManagedQuartz implements Managed {
 
 	
 	private String jobFolder;
+	private NextAlarmSkipper skipper;
 	private ManagedJobList mjl;
 
 
@@ -44,11 +45,16 @@ public class ManagedQuartz implements Managed {
 	public ManagedQuartz(SchedulerFactory sf,String jobFolder, ManagedJobList mjl) throws SchedulerException {
 		scheduler = sf.getScheduler();
 		schedulerMonitor = new QuartzSchedulerMonitor(); // Implements SchedulerListener
-		scheduler.getListenerManager().addSchedulerListener(schedulerMonitor);
 		jobMonitor = new QuartzJobMonitor(); // Implements JobListener
+		this.skipper = new NextAlarmSkipper(mjl);
+		
+		scheduler.getListenerManager().addSchedulerListener(schedulerMonitor);
 		scheduler.getListenerManager().addJobListener(jobMonitor);
+		scheduler.getListenerManager().addTriggerListener(skipper);
+		
 		this.jobFolder = jobFolder;
 		this.mjl = mjl;
+		
 	}
 
 	@Override
