@@ -6,3 +6,6 @@
 /.settings/org.eclipse.m2e.core.prefs
 /target
 /ws.log
+.idea/
+*.gz
+alarmmanager.iml

@@ -1,6 +1,7 @@
 package com.officialsounding.alarmmanager.data;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,27 +41,40 @@ public class ManagedJobList implements Managed {
 
 	@Override
 	public void stop() throws Exception {
-		//never persist the skipnext operation
-		jobs.setSkipnext(false);
-		if(!jobfile.exists()) {
-			log.info("creating job file at {}",jobfile);
-			jobfile.createNewFile();
-		}
-		log.info("persisting job list to filesystem");
-		mapper.writeValue(jobfile, jobs);
-
+		saveFile();
 	}
 	
 	public JobList getJobs() {
 		return jobs;
 	}
+
+    public void saveFile() {
+        boolean skipNextState = jobs.isSkipnext();
+        try {
+            jobs.setSkipnext(false);    //never persist skip next
+            if (!jobfile.exists()) {
+                log.info("creating job file at {}", jobfile);
+                jobfile.createNewFile();
+            }
+            log.info("persisting job list to filesystem");
+
+            mapper.writeValue(jobfile, jobs);
+
+        }catch(IOException e ){
+            log.error("Failed to save job list",e);
+        }finally {
+            jobs.setSkipnext(skipNextState);
+        }
+    }
 	
 	public void addJob(AlarmDetails details) {
 		jobs.addJob(details.getDay(), details.getTime());
+        saveFile();
 	}
 	
 	public void deleteJob(AlarmDetails details) {
 		jobs.deleteJob(details.getDay(), details.getTime());
+        saveFile();
 	}
 	
 	public void setEnabled(boolean enabled) {
@@ -70,9 +84,6 @@ public class ManagedJobList implements Managed {
 	public void setFalloff(boolean falloff) {
 		jobs.setFalloff(falloff);
 	}
-	
-	public void setSkipnext(boolean skipnext) {
-		jobs.setSkipnext(skipnext);
-	}
 
+    public void setSkipnext(boolean skipNext) { jobs.setSkipnext(skipNext);}
 }

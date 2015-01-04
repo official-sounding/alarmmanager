@@ -33,7 +33,7 @@ public class QuartzJobMonitor implements JobListener {
 
 	public boolean isHealthy() {
 		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 	public String getState() {
