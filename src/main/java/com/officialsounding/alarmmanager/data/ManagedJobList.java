@@ -1,6 +1,7 @@
 package com.officialsounding.alarmmanager.data;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +49,9 @@ public class ManagedJobList implements Managed {
 	}
 
     public void saveFile() {
+        boolean skipNextState = jobs.isSkipnext();
         try {
+            jobs.setSkipnext(false);    //never persist skip next
             if (!jobfile.exists()) {
                 log.info("creating job file at {}", jobfile);
                 jobfile.createNewFile();
@@ -59,6 +62,8 @@ public class ManagedJobList implements Managed {
 
         }catch(IOException e ){
             log.error("Failed to save job list",e);
+        }finally {
+            jobs.setSkipnext(skipNextState);
         }
     }
 	
@@ -80,4 +85,5 @@ public class ManagedJobList implements Managed {
 		jobs.setFalloff(falloff);
 	}
 
+    public void setSkipnext(boolean skipNext) { jobs.setSkipnext(skipNext);}
 }
