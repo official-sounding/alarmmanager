@@ -131,7 +131,7 @@ public class QuartzSchedulerMonitor implements SchedulerListener {
 
 	public boolean isHealthy() {
 		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 	public String getState() {
