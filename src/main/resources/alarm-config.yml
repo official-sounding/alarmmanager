@@ -1,6 +1,6 @@
 # Other settings
 # would go here
-jobFolder: /opt/pi_alarm/
+jobFolder: C:/opt/pi_alarm/
 
 
 # Quartz Scheduler configuration
