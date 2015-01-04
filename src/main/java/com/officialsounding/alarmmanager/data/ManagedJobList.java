@@ -40,25 +40,36 @@ public class ManagedJobList implements Managed {
 
 	@Override
 	public void stop() throws Exception {
-		if(!jobfile.exists()) {
-			log.info("creating job file at {}",jobfile);
-			jobfile.createNewFile();
-		}
-		log.info("persisting job list to filesystem");
-		mapper.writeValue(jobfile, jobs);
-
+		saveFile();
 	}
 	
 	public JobList getJobs() {
 		return jobs;
 	}
+
+    public void saveFile() {
+        try {
+            if (!jobfile.exists()) {
+                log.info("creating job file at {}", jobfile);
+                jobfile.createNewFile();
+            }
+            log.info("persisting job list to filesystem");
+
+            mapper.writeValue(jobfile, jobs);
+
+        }catch(IOException e ){
+            log.error("Failed to save job list",e);
+        }
+    }
 	
 	public void addJob(AlarmDetails details) {
 		jobs.addJob(details.getDay(), details.getTime());
+        saveFile();
 	}
 	
 	public void deleteJob(AlarmDetails details) {
 		jobs.deleteJob(details.getDay(), details.getTime());
+        saveFile();
 	}
 	
 	public void setEnabled(boolean enabled) {
@@ -70,10 +81,3 @@ public class ManagedJobList implements Managed {
 	}
 
 }
-
-
-//for(Day day: Day.values()) {
-//	for(LocalTime time: jobs.getJobs().get(day)) {
-//		addAlarm(day,time);
-//	}
-//}
