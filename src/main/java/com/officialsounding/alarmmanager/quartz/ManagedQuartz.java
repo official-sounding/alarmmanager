@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.JobDetail;
@@ -26,29 +27,40 @@ import com.officialsounding.alarmmanager.model.Day;
 import com.yammer.dropwizard.lifecycle.Managed;
 
 
-import static org.quartz.JobBuilder.*;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
+import static org.quartz.JobBuilder.*;
+@Singleton
 public class ManagedQuartz implements Managed {
 
-	private Scheduler scheduler;
+
 	private QuartzSchedulerMonitor schedulerMonitor;
 	private QuartzJobMonitor jobMonitor;
 
 	
 	private String jobFolder;
 	private ManagedJobList mjl;
+    private Scheduler scheduler;
 
 
 	private static final Logger log = LoggerFactory.getLogger(ManagedQuartz.class);
 
-	public ManagedQuartz(SchedulerFactory sf,String jobFolder, ManagedJobList mjl) throws SchedulerException {
-		scheduler = sf.getScheduler();
-		schedulerMonitor = new QuartzSchedulerMonitor(); // Implements SchedulerListener
-		scheduler.getListenerManager().addSchedulerListener(schedulerMonitor);
-		jobMonitor = new QuartzJobMonitor(); // Implements JobListener
-		scheduler.getListenerManager().addJobListener(jobMonitor);
-		this.jobFolder = jobFolder;
-		this.mjl = mjl;
+    @Inject
+	public ManagedQuartz(SchedulerFactory sf, @Named("JobFolder") String jobFolder, ManagedJobList mjl) {
+		try {
+            scheduler = sf.getScheduler();
+            schedulerMonitor = new QuartzSchedulerMonitor(); // Implements SchedulerListener
+            scheduler.getListenerManager().addSchedulerListener(schedulerMonitor);
+            jobMonitor = new QuartzJobMonitor(); // Implements JobListener
+            scheduler.getListenerManager().addJobListener(jobMonitor);
+            this.jobFolder = jobFolder;
+            this.mjl = mjl;
+        } catch(SchedulerException ex) {
+            //ignored
+
+        }
 	}
 
 	@Override
@@ -57,6 +69,15 @@ public class ManagedQuartz implements Managed {
 		// Make our Job listener cover all scheduled jobs
 		scheduler.getListenerManager().addJobListener(jobMonitor, EverythingMatcher.allJobs());	
 
+		for(Day day: Day.values()) {
+			for(LocalTime time: mjl.getJobs().getJobs().get(day)) {
+				try {
+				addAlarm(day,time);
+				} catch(Exception e) {
+					
+				}
+			}
+		}
 		
 	}
 

@@ -1,7 +1,9 @@
 package com.officialsounding.alarmmanager.data;
 
 import java.io.File;
+import java.io.IOException;
 
+import com.sun.jersey.spi.resource.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,6 +13,10 @@ import com.officialsounding.alarmmanager.model.AlarmDetails;
 import com.officialsounding.alarmmanager.model.JobList;
 import com.yammer.dropwizard.lifecycle.Managed;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
+@Singleton
 public class ManagedJobList implements Managed {
 
 	private static final Logger log = LoggerFactory.getLogger(ManagedJobList.class);
@@ -19,7 +25,8 @@ public class ManagedJobList implements Managed {
 	private File jobfile;
 	private ObjectMapper mapper;
 
-	public ManagedJobList(String jobFolder) {
+
+	public ManagedJobList(@Named("JobFolder") String jobFolder) {
 		jobfile = new File(jobFolder,"jobs.json");
 		mapper = new ObjectMapper();
 		mapper.registerModule(new JodaModule());

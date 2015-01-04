@@ -2,6 +2,8 @@ package com.officialsounding.alarmmanager;
 
 import java.io.IOException;
 
+import com.officialsounding.alarmmanager.config.AlarmModule;
+import dagger.ObjectGraph;
 import org.joda.time.LocalTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
@@ -58,13 +60,15 @@ public class AlarmService extends Service<AlarmConfiguration> {
 			}
 		});
 
-		SchedulerFactory sf = new StdSchedulerFactory(config.getSchedulerFactoryProperties());
-		ManagedJobList mjl = new ManagedJobList(config.getJobFolder());
-		ManagedQuartz qm = new ManagedQuartz(sf,config.getJobFolder(),mjl); 
+        ObjectGraph objectGraph = ObjectGraph.create(new AlarmModule(config));
+
+        ManagedJobList mjl = objectGraph.get(ManagedJobList.class);
+        ManagedQuartz qm = objectGraph.get(ManagedQuartz.class);
+
 		env.manage(mjl);
-		env.manage(qm); 
+		env.manage(qm);
 		env.addHealthCheck(new QuartzHealthCheck(qm)); 
-		env.addResource(new AlarmResource(qm,mjl));
+		env.addResource(objectGraph.get(AlarmResource.class));
 	}
 
 	private final DateTimeFormatter frmt = new DateTimeFormatterBuilder().appendHourOfDay(2).appendLiteral(':').appendMinuteOfHour(2).toFormatter();

@@ -4,6 +4,7 @@ package com.officialsounding.alarmmanager.resources;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
@@ -31,11 +32,12 @@ import com.yammer.metrics.annotation.Timed;
 @Produces(MediaType.APPLICATION_JSON)
 public class AlarmResource {
 
-	ManagedQuartz mq;
-	ManagedJobList mjl;
+	private ManagedQuartz mq;
+	private ManagedJobList mjl;
 	
 	Logger log = LoggerFactory.getLogger(AlarmResource.class);
-	
+
+    @Inject
 	public AlarmResource(ManagedQuartz mq,ManagedJobList mjl) {
 		this.mq = mq;
 		this.mjl = mjl;
@@ -52,10 +54,12 @@ public class AlarmResource {
 	@Path("{day}/{time}")
 	public Response deleteJob(@PathParam("day") String day, @PathParam("time") String time) {
 		try {
-			mq.deleteAlarm(Day.valueOf(day),  getTimeFromString(time));
+			AlarmDetails details = mq.deleteAlarm(Day.valueOf(day),  getTimeFromString(time));
+			mjl.deleteJob(details);
 			//should probably return a 205 response code here, but the Response object doesn't have that
 			return Response.ok().build();
 		}catch(AlarmException e) {
+			log.warn("error deleting job",e);
 			return Response.noContent().build();
 		} 	
 			
@@ -67,8 +71,10 @@ public class AlarmResource {
 	public Response addJob(@FormParam("day") String day, @FormParam("time") String time) {
 		try {
 			AlarmDetails details = mq.addAlarm(Day.valueOf(day), getTimeFromString(time));
+			mjl.addJob(details);
 			return Response.ok(details).build();
 		}catch(AlarmException | NumberFormatException e) {
+            log.error("error adding alarm",e);
 			return Response.notModified().build();
 		}
 	}
